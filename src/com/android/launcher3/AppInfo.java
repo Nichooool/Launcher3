@@ -124,4 +124,8 @@ public class AppInfo extends ItemInfoWithIcon {
     public boolean isDisabled() {
         return isDisabled != 0;
     }
+
+    public boolean isSystenApp() {
+        return ( isSystemApp & FLAG_SYSTEM_YES ) != 0;
+    }
 }

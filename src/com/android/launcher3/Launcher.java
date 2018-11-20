@@ -121,6 +121,7 @@ import com.android.launcher3.userevent.nano.LauncherLogProto.Action;
 import com.android.launcher3.userevent.nano.LauncherLogProto.ContainerType;
 import com.android.launcher3.userevent.nano.LauncherLogProto.ControlType;
 import com.android.launcher3.util.ActivityResultInfo;
+import com.android.launcher3.util.HealthDataHelper;
 import com.android.launcher3.util.RunnableWithId;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ComponentKeyMapper;
@@ -144,6 +145,7 @@ import com.android.launcher3.widget.WidgetsContainerView;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -2287,12 +2289,45 @@ public class Launcher extends BaseActivity
             (v == mAllAppsButton && mAllAppsButton != null)) {
             onClickAllAppsButton(v);
         } else if (tag instanceof AppInfo) {
+            if (isForbidTime() && !isSystemApp((AppInfo) tag)) {
+                return;
+            }
             startAppShortcutOrInfoActivity(v);
         } else if (tag instanceof LauncherAppWidgetInfo) {
             if (v instanceof PendingAppWidgetHostView) {
                 onClickPendingWidget((PendingAppWidgetHostView) v);
             }
         }
+    }
+
+    /**
+     * 是否是系统应用
+     * */
+    private boolean isSystemApp(AppInfo appInfo) {
+        boolean is = appInfo.isSystenApp();
+        if (is) {
+            Log.i("nieyihe_system", "is system app " + appInfo.componentName.getPackageName());
+        } else {
+            Log.i("nieyihe_system", "is not system app " + appInfo.componentName.getPackageName());
+        }
+        return appInfo.isSystenApp();
+    }
+
+    /**
+     * 是否是禁止时间内
+     * */
+    private boolean isForbidTime() {
+        Calendar date = Calendar.getInstance();
+        int time = date.get(Calendar.HOUR_OF_DAY);
+        int startHour = HealthDataHelper.getConfigStartTime(this);
+        int endHour = HealthDataHelper.getConfigEndTime(this);
+        //时间区间 (startHour ~ endHour)
+        if (startHour <= time && endHour >= time) {
+            Log.i("nieyihe_system", "is not forbid time");
+            return false;
+        }
+        Log.i("nieyihe_system", "is forbid time");
+        return true;
     }
 
     @SuppressLint("ClickableViewAccessibility")
