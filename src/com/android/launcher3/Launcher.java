@@ -42,6 +42,7 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
@@ -122,6 +123,7 @@ import com.android.launcher3.userevent.nano.LauncherLogProto.ContainerType;
 import com.android.launcher3.userevent.nano.LauncherLogProto.ControlType;
 import com.android.launcher3.util.ActivityResultInfo;
 import com.android.launcher3.util.HealthDataHelper;
+import com.android.launcher3.util.HealthUtils;
 import com.android.launcher3.util.RunnableWithId;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ComponentKeyMapper;
@@ -149,6 +151,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -248,6 +251,7 @@ public class Launcher extends BaseActivity
     private View mAllAppsButton;
     private View mWidgetsButton;
 
+    private PackageManager mPackageManager ;
     private DropTargetBar mDropTargetBar;
 
     // Main container view for the all apps screen.
@@ -2289,6 +2293,9 @@ public class Launcher extends BaseActivity
             (v == mAllAppsButton && mAllAppsButton != null)) {
             onClickAllAppsButton(v);
         } else if (tag instanceof AppInfo) {
+            if (isForbidApp((AppInfo) tag)) {
+                return;
+            }
             if (isForbidTime() && !isSystemApp((AppInfo) tag)) {
                 return;
             }
@@ -2298,6 +2305,26 @@ public class Launcher extends BaseActivity
                 onClickPendingWidget((PendingAppWidgetHostView) v);
             }
         }
+    }
+
+    private boolean isForbidApp(AppInfo appInfo) {
+        try {
+            if (mPackageManager == null) {
+                mPackageManager = getPackageManager();
+            }
+            PackageInfo packageInfo = mPackageManager.getPackageInfo( appInfo.componentName.getPackageName(), 0);
+            LinkedList<String> appNames = HealthDataHelper.getConfigAppNames(this);
+            CharSequence appName = packageInfo.applicationInfo.loadLabel(mPackageManager);
+            for (String forbidName : appNames) {
+                if (appName != null && appName.toString().equalsIgnoreCase(forbidName)) {
+                    Log.i("nieyihe_system", "is forbid app " + appName);
+                    return true;
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
