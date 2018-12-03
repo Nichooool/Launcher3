@@ -2309,12 +2309,14 @@ public class Launcher extends BaseActivity
 
         Object tag = v.getTag();
         if (tag instanceof ShortcutInfo) {
-            if (isForbidShortcut((ShortcutInfo) tag)) {
-                return;
-            }
-            if (isForbidTime()) {
-                Toast.makeText(this, "该休息了!", Toast.LENGTH_SHORT).show();
-                return;
+            if (!isWhitePkgApp((ShortcutInfo)tag)) {
+                if (isForbidShortcut((ShortcutInfo) tag)) {
+                    return;
+                }
+                if (isForbidTime()) {
+                    Toast.makeText(this, "该休息了!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
             onClickAppShortcut(v);
         } else if (tag instanceof FolderInfo) {
@@ -2325,12 +2327,14 @@ public class Launcher extends BaseActivity
                 (v == mAllAppsButton && mAllAppsButton != null)) {
             onClickAllAppsButton(v);
         } else if (tag instanceof AppInfo) {
-            if (isForbidApp((AppInfo) tag)) {
-                return;
-            }
-            if (isForbidTime() && !isSystemApp((AppInfo) tag)) {
-                Toast.makeText(this, "该休息了!", Toast.LENGTH_SHORT).show();
-                return;
+            if (!isWhitePkgApp((AppInfo)tag)) {
+                if (isForbidApp((AppInfo) tag)) {
+                    return;
+                }
+                if (isForbidTime() && !isSystemApp((AppInfo) tag)) {
+                    Toast.makeText(this, "该休息了!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             }
             startAppShortcutOrInfoActivity(v);
         } else if (tag instanceof LauncherAppWidgetInfo) {
@@ -2384,6 +2388,29 @@ public class Launcher extends BaseActivity
             }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
+        }
+        return false;
+    }
+
+    private boolean isWhitePkgApp(ItemInfoWithIcon info) {
+        String currentPkgName = null;
+        if (info instanceof AppInfo) {
+            currentPkgName = ((AppInfo) info).componentName.getPackageName();
+        } else if (info instanceof ShortcutInfo) {
+            currentPkgName = ((ShortcutInfo)info).intent.getPackage();
+            if (TextUtils.isEmpty(currentPkgName)) {
+                currentPkgName = ((ShortcutInfo)info).intent.getComponent().getPackageName();
+            }
+        } else {
+            return false;
+        }
+        LinkedList<String> pkgNameList = HealthDataHelper.getConfigWhitePkg(this);
+        for (String pkgName : pkgNameList) {
+            if (currentPkgName.equalsIgnoreCase(pkgName)) {
+                Log.i("nieyihe_system", "is white pkg app " + currentPkgName);
+                Toast.makeText(this, "白名单软件，请早点休息！", Toast.LENGTH_SHORT).show();
+                return true;
+            }
         }
         return false;
     }
