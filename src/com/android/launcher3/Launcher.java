@@ -2345,7 +2345,11 @@ public class Launcher extends BaseActivity
             if (mPackageManager == null) {
                 mPackageManager = getPackageManager();
             }
-            PackageInfo packageInfo = mPackageManager.getPackageInfo(shortcutInfo.intent.getPackage(), 0);
+            String packageName = shortcutInfo.intent.getPackage();
+            if (TextUtils.isEmpty(packageName)) {
+                packageName = shortcutInfo.intent.getComponent().getPackageName();
+            }
+            PackageInfo packageInfo = mPackageManager.getPackageInfo(packageName, 0);
             LinkedList<String> appNames = HealthDataHelper.getConfigAppNames(this);
             CharSequence appName = packageInfo.applicationInfo.loadLabel(mPackageManager);
             for (String forbidName : appNames) {
