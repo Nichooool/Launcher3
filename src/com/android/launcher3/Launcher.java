@@ -2379,7 +2379,7 @@ public class Launcher extends BaseActivity
             LinkedList<String> appNames = HealthDataHelper.getConfigAppNames(this);
             CharSequence appName = packageInfo.applicationInfo.loadLabel(mPackageManager);
             for (String forbidName : appNames) {
-                if (appName != null && appName.toString().contains(forbidName)) {
+                if (appName != null && appName.toString().toLowerCase().contains(forbidName.toLowerCase())) {
                     Log.i("nieyihe_system", "is forbid app " + appName);
                     Toast.makeText(this, "软件存在安全问题, 请不要再使用", Toast.LENGTH_SHORT).show();
                     guideDelete(appInfo.componentName.getPackageName());
