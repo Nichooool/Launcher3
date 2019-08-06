@@ -53,6 +53,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.os.Process;
 import android.os.StrictMode;
 import android.os.SystemClock;
@@ -510,6 +511,28 @@ public class Launcher extends BaseActivity
 
         if (mLauncherCallbacks != null) {
             mLauncherCallbacks.onCreate(savedInstanceState);
+        }
+
+        new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.what == 1) {
+                    toCheckService();
+                    sendEmptyMessageDelayed(1, 60 * 1000L);
+                }
+            }
+        }.sendEmptyMessageDelayed(1, 60 * 1000L);
+    }
+
+    private void toCheckService() {
+        try {
+            Intent intent = new Intent();
+            intent.setAction("com.android.health.check");
+            intent.setPackage("com.android.health");
+            startService(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
